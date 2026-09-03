@@ -1,0 +1,97 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        boho: {
+          terracotta: {
+            950: "#1e0b06",
+            900: "#36140b",
+            800: "#5c2112",
+            700: "#8a311b",
+            600: "#b54427",
+            500: "#d35432",
+            400: "#e07253",
+            300: "#ec9880",
+            200: "#f5c3b3",
+            100: "#fae3dc",
+          },
+          ochre: {
+            950: "#1c1204",
+            900: "#382308",
+            800: "#5f3d0e",
+            700: "#8a5914",
+            600: "#ba7b1d",
+            500: "#df9b28",
+            400: "#ebb451",
+            300: "#f3cc82",
+            200: "#fae5b6",
+            100: "#fdf4de",
+          },
+          sand: {
+            950: "#181410",
+            900: "#28211a",
+            800: "#44382c",
+            700: "#695845",
+            600: "#917b62",
+            500: "#b8a084",
+            400: "#d4c1a9",
+            300: "#e6d9c8",
+            200: "#f3ede4",
+            100: "#faf7f2",
+            50: "#fdfcf9",
+          },
+          turquoise: {
+            950: "#041417",
+            900: "#09292e",
+            800: "#0f4750",
+            700: "#176977",
+            600: "#208f9f",
+            500: "#2db3c6",
+            400: "#57cbdb",
+            300: "#8ee0ec",
+            200: "#c2f0f7",
+            100: "#e6f9fc",
+          },
+          sage: {
+            950: "#0e140d",
+            900: "#1b2819",
+            800: "#2e452b",
+            700: "#456641",
+            600: "#5f8a59",
+            500: "#7cb174",
+            400: "#9dc796",
+            300: "#bfdeba",
+            200: "#def0db",
+            100: "#f1f8f0",
+          },
+          night: {
+            950: "#0d0907",
+            900: "#170f0b",
+            850: "#201610",
+            800: "#2b1e17",
+            700: "#3d2b21",
+          },
+        },
+      },
+      fontFamily: {
+        cinzel: ["Cinzel", "Georgia", "serif"],
+        garamond: ["'EB Garamond'", "Garamond", "Georgia", "serif"],
+      },
+      boxShadow: {
+        'boho-soft': '0 12px 32px -8px rgba(30, 15, 10, 0.45), 0 0 15px rgba(223, 155, 40, 0.12)',
+        'boho-glow': '0 0 25px rgba(223, 155, 40, 0.28), inset 0 1px 1px rgba(255, 245, 220, 0.2)',
+        'boho-card': '0 10px 25px -5px rgba(10, 5, 2, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+        'boho-terracotta': '0 8px 20px -4px rgba(211, 84, 50, 0.4)',
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;

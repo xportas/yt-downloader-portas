@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #181410;
+  --foreground: #faf7f2;
+  --font-cinzel: 'Cinzel', Georgia, serif;
+  --font-eb-garamond: 'EB Garamond', Garamond, Georgia, serif;
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  min-height: 100vh;
+  font-family: var(--font-eb-garamond);
+  overflow-x: hidden;
+}
+
+/* Capa de Fondo Nítida y Luminosa para apreciar portas-bg.jpg */
+.boho-background-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -20;
+  background-image: url('/portas-bg.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Velo suave y translúcido que permite ver perfectamente la imagen original */
+.boho-overlay-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 16, 10, 0.15) 0%,
+    rgba(24, 16, 10, 0.05) 40%,
+    rgba(24, 16, 10, 0.25) 100%
+  );
+  pointer-events: none;
+}
+
+/* Animaciones y Efectos Bohemios */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes shimmerBoho {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+/* Barra de desplazamiento Bohemia en tonos arena y terracota */
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 20, 15, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #df9b28 0%, #d35432 100%);
+  border-radius: 9999px;
+  border: 2px solid rgba(30, 20, 15, 0.7);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ebb451;
+}
+
+/* Selección de texto en terracota y arena */
+::selection {
+  background-color: #d35432;
+  color: #faf7f2;
+}
