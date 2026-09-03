@@ -35,3 +35,7 @@ next-env.d.ts
 # temp downloads
 /downloads
 
+# binaries
+/bin
+
+

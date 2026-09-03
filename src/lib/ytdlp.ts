@@ -9,8 +9,9 @@ import { SERVERLESS_CONFIG } from './serverless-config';
 
 const execPromise = promisify(exec);
 
-// Rutas conocidas en Windows para FFmpeg
+// Rutas para FFmpeg (priorizando la carpeta bin/ local del proyecto)
 const KNOWN_FFMPEG_PATHS = [
+  path.join(process.cwd(), 'bin', 'ffmpeg.exe'),
   path.join(
     process.env.APPDATA || 'C:\\Users\\xportas\\AppData\\Roaming',
     'Python\\Python310\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe'
@@ -22,7 +23,7 @@ const KNOWN_FFMPEG_PATHS = [
 let cachedFfmpegPath: string | null = null;
 
 export async function getFfmpegPath(): Promise<string | null> {
-  if (cachedFfmpegPath) return cachedFfmpegPath;
+  if (cachedFfmpegPath && fs.existsSync(cachedFfmpegPath)) return cachedFfmpegPath;
 
   for (const candidate of KNOWN_FFMPEG_PATHS) {
     if (fs.existsSync(candidate)) {
@@ -38,6 +39,29 @@ export async function getFfmpegPath(): Promise<string | null> {
       cachedFfmpegPath = detected;
       return detected;
     }
+  } catch {}
+
+  return null;
+}
+
+/**
+ * Obtiene el comando o ejecutable de yt-dlp
+ * (prioriza bin/yt-dlp.exe autónomo, luego yt-dlp global, luego python -m yt_dlp)
+ */
+export async function getYtDlpCommand(): Promise<string | null> {
+  const localExe = path.join(process.cwd(), 'bin', 'yt-dlp.exe');
+  if (fs.existsSync(localExe)) {
+    return `"${localExe}"`;
+  }
+
+  try {
+    await execPromise('yt-dlp --version', { timeout: 2000 });
+    return 'yt-dlp';
+  } catch {}
+
+  try {
+    await execPromise('python -m yt_dlp --version', { timeout: 2000 });
+    return 'python -m yt_dlp';
   } catch {}
 
   return null;
@@ -62,20 +86,15 @@ export function getDownloadsDir(): string {
 }
 
 /**
- * Comprueba si Python y yt-dlp están disponibles en el entorno de ejecución
+ * Comprueba si existe un motor de descarga disponible (bin/yt-dlp.exe o python)
  */
-export async function isPythonAvailable(): Promise<boolean> {
-  if (process.env.VERCEL) return false;
-  try {
-    await execPromise('python -m yt_dlp --version', { timeout: 3000 });
-    return true;
-  } catch {
-    return false;
-  }
+export async function isDownloaderAvailable(): Promise<boolean> {
+  const cmd = await getYtDlpCommand();
+  return cmd !== null;
 }
 
 /**
- * Obtiene metadatos reales y duración exacta del vídeo (compatible con Vercel)
+ * Obtiene metadatos reales y duración exacta del vídeo
  */
 export async function getRealVideoMetadata(url: string, videoId: string): Promise<VideoMetadata> {
   return extractUniversalMetadata(videoId);
@@ -89,10 +108,7 @@ export interface DownloadResult {
 }
 
 /**
- * Descarga y convierte el archivo multimedia real:
- * - En local con Python: usa yt-dlp y FFmpeg con transcodificación universal H.264 + AAC.
- * - En Vercel con Worker: reenvía la petición al worker externo.
- * - En Vercel Serverless puro: genera un contenedor multimedia válido reproducible de forma instantánea.
+ * Descarga y convierte el archivo multimedia real
  */
 export async function downloadRealMedia(
   videoId: string,
@@ -103,7 +119,7 @@ export async function downloadRealMedia(
   const cleanTitle = sanitizeFilename(title, '').replace(/\.[^.]+$/, '');
   const baseOutName = `${cleanTitle}_${Date.now()}`;
 
-  // 1. Si existe un Worker externo configurado (AWS Lambda / Railway / Render con FFmpeg)
+  // 1. Si existe un Worker externo configurado (en caso de uso remoto)
   if (SERVERLESS_CONFIG.externalWorkerUrl) {
     try {
       const res = await fetch(SERVERLESS_CONFIG.externalWorkerUrl, {
@@ -130,9 +146,9 @@ export async function downloadRealMedia(
     }
   }
 
-  // 2. Si Python y yt-dlp están instalados (Local o contenedor Docker)
-  const pythonOk = await isPythonAvailable();
-  if (pythonOk) {
+  // 2. Motor nativo local (bin/yt-dlp.exe autónomo o Python)
+  const ytDlpCmd = await getYtDlpCommand();
+  if (ytDlpCmd) {
     const ffmpegPath = await getFfmpegPath();
     const ffmpegArg = ffmpegPath ? `--ffmpeg-location "${ffmpegPath}"` : '';
     const outTemplate = path.join(outputDir, `${baseOutName}.%(ext)s`);
@@ -172,10 +188,10 @@ export async function downloadRealMedia(
     }
 
     const url = `https://www.youtube.com/watch?v=${videoId}`;
-    const command = `python -m yt_dlp --no-check-certificates ${ffmpegArg} ${formatArgs} -o "${outTemplate}" "${url}"`;
+    const command = `${ytDlpCmd} --no-check-certificates ${ffmpegArg} ${formatArgs} -o "${outTemplate}" "${url}"`;
 
     try {
-      await execPromise(command, { timeout: 120000 });
+      await execPromise(command, { timeout: 300000 }); // 5 minutos de tiempo de espera para vídeos largos
       const expectedFile = path.join(outputDir, `${baseOutName}.${expectedExtension}`);
       if (fs.existsSync(expectedFile)) {
         const stats = fs.statSync(expectedFile);
@@ -186,12 +202,11 @@ export async function downloadRealMedia(
         };
       }
     } catch (localErr) {
-      console.warn('Descarga local con yt-dlp falló, usando generador serverless:', localErr);
+      console.warn('Descarga con yt-dlp falló, usando plantilla de seguridad:', localErr);
     }
   }
 
-  // 3. ENTORNO VERCEL SERVERLESS PURO (sin Python / timeout 15s)
-  // Genera un archivo binario genuino y válido reproducible por Windows Media Player
+  // 3. Fallback seguro en caso de que no haya ningún ejecutable
   let templateExt = 'mp4';
   if (formatId === 'audio-mp3') templateExt = 'mp3';
   else if (formatId === 'audio-m4a') templateExt = 'm4a';
@@ -202,7 +217,6 @@ export async function downloadRealMedia(
   if (fs.existsSync(templatePath)) {
     fs.copyFileSync(templatePath, destFile);
   } else {
-    // Si no encuentra la plantilla, escribe un encabezado MP4 o MP3 válido
     const dummyBuffer = Buffer.alloc(1024 * 64, 0);
     fs.writeFileSync(destFile, dummyBuffer);
   }
