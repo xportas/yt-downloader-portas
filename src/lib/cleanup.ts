@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { getDownloadsDir } from './ytdlp';
 
 /**
  * Tiempo de retención por defecto: 30 minutos (en milisegundos)
@@ -12,7 +13,7 @@ export const RETENTION_TIME_MS = 30 * 60 * 1000;
  * @param maxAgeMs Antigüedad máxima en milisegundos (por defecto 30 minutos)
  */
 export function cleanOldDownloads(
-  downloadsDir: string = path.join(process.cwd(), 'downloads'),
+  downloadsDir: string = getDownloadsDir(),
   maxAgeMs: number = RETENTION_TIME_MS
 ): { deletedCount: number; deletedFiles: string[] } {
   const deletedFiles: string[] = [];

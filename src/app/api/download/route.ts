@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
 import { cleanOldDownloads } from '@/lib/cleanup';
+import { getDownloadsDir } from '@/lib/ytdlp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Sanitización estricta contra Path Traversal
     const safeBaseName = path.basename(fileId);
-    const downloadsDir = path.join(process.cwd(), 'downloads');
+    const downloadsDir = getDownloadsDir();
     
     // Purgar archivos con más de 30 minutos
     cleanOldDownloads(downloadsDir);

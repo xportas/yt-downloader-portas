@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
 import { AVAILABLE_FORMATS } from '@/lib/youtube';
-import { downloadRealMedia } from '@/lib/ytdlp';
+import { downloadRealMedia, getDownloadsDir } from '@/lib/ytdlp';
 import { cleanOldDownloads } from '@/lib/cleanup';
 
 export const runtime = 'nodejs';
@@ -28,10 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const downloadsDir = path.join(process.cwd(), 'downloads');
-    if (!fs.existsSync(downloadsDir)) {
-      fs.mkdirSync(downloadsDir, { recursive: true });
-    }
+    const downloadsDir = getDownloadsDir();
 
     // Limpieza automática de descargas con más de 30 minutos de antigüedad
     cleanOldDownloads(downloadsDir);

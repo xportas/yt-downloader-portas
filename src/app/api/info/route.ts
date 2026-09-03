@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractYouTubeVideoId } from '@/lib/youtube';
-import { getRealVideoMetadata } from '@/lib/ytdlp';
+import { extractUniversalMetadata } from '@/lib/metadata';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Obtener metadatos reales y duración exacta mediante yt-dlp
-    const metadata = await getRealVideoMetadata(url, videoId);
+    // Extracción universal y exacta compatible con Vercel Serverless
+    const metadata = await extractUniversalMetadata(videoId);
 
     return NextResponse.json(metadata);
   } catch (error) {
