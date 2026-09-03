@@ -71,10 +71,3 @@ Un binario estático de FFmpeg pesa ~80 MB y unir pistas de vídeo 4K con audio 
    ```
 
 ---
-
-## ☁️ Despliegue en Vercel
-
-1. Sube el repositorio a GitHub o GitLab.
-2. Importa el proyecto en tu panel de control de [Vercel](https://vercel.com).
-3. Vercel detectará automáticamente Next.js. Haz clic en **Deploy**.
-4. (Opcional) Si dispones de un worker de transcodificación FFmpeg externo, añade `EXTERNAL_DOWNLOAD_WORKER_URL` en *Settings -> Environment Variables*.
